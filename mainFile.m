@@ -19,6 +19,7 @@ plot(Year,B')
 title('Our modell', 'FontSize', fontSize)
 xlabel('Year', 'FontSize', fontSize)
 ylabel('GtC (Gigaton kol)', 'FontSize', fontSize)
+legend(["Atmosfär";"Ovan mark";"Under mark"],'Location','northwest', 'FontSize', fontSize)
 grid on
 
 subplot(2,2,3)
@@ -45,7 +46,7 @@ clc;clear;clf
 
 
 Year = 1765:2500;
-numberOfLines = 2;
+numberOfLines = 5;
 beta = linspace(0.1,1,numberOfLines);
 %Fixar en matris för koldioxidkoncentrationen för olika beta
 B_koldioxidkoncentrationen = zeros(numberOfLines, length(Year));
@@ -170,12 +171,8 @@ clc;clear;clf
 
 run('koncentrationerRCP45.m')
 
-%Ställer upp utsläppet
-run('utslappRCP45.m')
-U = CO2Emissions;
-
 Year = 1765:2500;
-beta = 0.27;
+beta = 0.28;
 newModell = modellSammankopplade(Year, beta);
 
 %Plottar
@@ -187,6 +184,7 @@ titleString = append('Two models in one (\beta = ', string(beta),')');
 title(titleString, 'FontSize', fontSize)
 xlabel('Year', 'FontSize', fontSize)
 ylabel('GtC (Gigaton kol)', 'FontSize', fontSize)
+legend(["Atmosfär";"Ovan mark";"Under mark";"Havet"],'Location','west', 'FontSize', 11)
 grid on
 
 subplot(2,1,2)
@@ -203,8 +201,12 @@ legendPlot = ["CO_2 conc our modell"
               "CO_2 conc RCP45"];
 legend(legendPlot,'Location','southeast', 'FontSize', fontSize)
 
+%% Uppgift 7
 
 
+
+
+sum(U) + 600 + 600 + 1500 - sum(newModell(:,end))
 
 
 

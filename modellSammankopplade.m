@@ -46,6 +46,7 @@ function newModell = modellSammankopplade(years, beta)
         B(1,t+h) = M(t+1);
         B(2,t+h) = B(2,t) + B2_prim(t,B(1,t),B(2,t),B(3,t))*h;
         B(3,t+h) = B(3,t) + B3_prim(t,B(1,t),B(2,t),B(3,t))*h;
+        B(4,t+h) = sum(U(1:t)) + sum(B(:,1)) - sum(B(:,t));
     end
     
     newModell = B;
