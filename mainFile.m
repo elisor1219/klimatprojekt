@@ -156,7 +156,7 @@ legendPlot = ["CO_2 conc our modell"
 legend(legendPlot,'Location','northwest', 'FontSize', fontSize)
 
 %% Uppgift 5 
-clc;clear;clf
+clf
 
 fullFileName = '../figures/boxmodell.png';
 if ~isfile(fullFileName)
@@ -184,7 +184,7 @@ titleString = append('Two models in one (\beta = ', string(beta),')');
 title(titleString, 'FontSize', fontSize)
 xlabel('Year', 'FontSize', fontSize)
 ylabel('GtC (Gigaton kol)', 'FontSize', fontSize)
-legend(["Atmosfär";"Ovan mark";"Under mark";"Havet"],'Location','west', 'FontSize', 11)
+legend(["Atmosfär";"Ovan mark";"Under mark";"Hav"],'Location','west', 'FontSize', 11)
 grid on
 
 subplot(2,1,2)
@@ -195,19 +195,38 @@ xlabel('Year', 'FontSize', fontSize)
 ylabel('ppm', 'FontSize', fontSize)
 grid on
 hold on
-plot(Year,CO2ConcRCP45)
+plot(Year,CO2ConcRCP45(1:length(Year)))
 hold off
 legendPlot = ["CO_2 conc our modell"
               "CO_2 conc RCP45"];
 legend(legendPlot,'Location','southeast', 'FontSize', fontSize)
 
 %% Uppgift 7
+error("Nothing to run here, see source code for answers.")
+%Över sikt förflyttar sig mycket CO_2 till haven.
+%Mellan 1765-2100 är det atmosfären som ändras mest, sedan följder
+%ovan mark, under mark och haven ganska lika kurvor.
 
+%-%-%-Beta = 0.28*2 & k = 3.06E-3-%-%-%
+%Av att dubbla CO_2-fertiliseringsfaktorn så ökas antal CO_2 som förflyttas
+%till biomassa ovan och under mark. Mängden CO_2 som förflyttar sig till
+%havet förblir hyfsat oförändrat.
 
+%-%-%-Beta = 0.28 & k = 3.06*2E-3-%-%-%
+%Dubblar vi k ökar vi hur snabbt 
+%havet blir mättat så mindre kol kommer förlytta sig till havet och
+%mer kol kommer befinna sig i atmosfären samt biomassa ovan och under mark
 
+%-%-%-Beta = 0.28/2 & k = 3.06E-3-%-%-%
+%Om vi halverar beta minskas hur mycket kol som kommer förflytta sig 
+%till biomassa ovan och under mark. Detta gör att mer kol kommer samla
+%sig i atmosfären. Mängden CO_2 som förflyttar sig till havet förblir 
+%hyfsat oförändrat.
 
-sum(U) + 600 + 600 + 1500 - sum(newModell(:,end))
-
+%-%-%-Beta = 0.28 & k = 3.06/2E-3-%-%-%
+%Halverar vi k ökar vi hur mycket CO_2 havet kan ta upp innan det blir
+%mättat. Detta gör att mer CO_2 kommer förlytta sig från atmosfären
+%till havet under kortare tid. 
 
 
 
