@@ -76,7 +76,7 @@ ylabel('ppm', 'FontSize', fontSize)
 grid on
 legend(legendPlot,'Location','northwest')
 
-%Plottar kol i biomassa
+%Plottar kol i biomassahttps://github.com/elisor1219/klimatprojekt
 subplot(3,1,2)
 plot(Year,B_biomassa')
 title('Kol i biomassa', 'FontSize', fontSize)
@@ -155,7 +155,7 @@ legendPlot = ["CO_2 conc our modell"
               "CO_2 conc RCP45"];
 legend(legendPlot,'Location','northwest', 'FontSize', fontSize)
 
-%% Uppgift 5 
+%% Uppgift 5 TODO: Saknas en pil mellan B1 och B3
 clf
 
 fullFileName = '../figures/boxmodell.png';
@@ -202,7 +202,6 @@ legendPlot = ["CO_2 conc our modell"
 legend(legendPlot,'Location','southeast', 'FontSize', fontSize)
 
 %% Uppgift 7
-error("Nothing to run here, see source code for answers.")
 %Över sikt förflyttar sig mycket CO_2 till haven.
 %Mellan 1765-2100 är det atmosfären som ändras mest, sedan följder
 %ovan mark, under mark och haven ganska lika kurvor.
@@ -228,8 +227,46 @@ error("Nothing to run here, see source code for answers.")
 %mättat. Detta gör att mer CO_2 kommer förlytta sig från atmosfären
 %till havet under kortare tid. 
 
+%% Uppgift 8
+clc;clear;clf
+
+run('koncentrationerRCP45.m');
+run('radiativeForcingRCP45.m');
 
 
+Year = 1765:2500;
+RF = RF_CO2(Year, CO2ConcRCP45*0.469);
+
+fontSize = 15;
+plot(Year, RF)
+titleString = append('Radiative forcing för CO_2');
+title(titleString, 'FontSize', fontSize)
+xlabel('Year', 'FontSize', fontSize)
+ylabel('W/M^2', 'FontSize', fontSize)
+grid on
+hold on
+plot(Year,CO2RadForc)
+hold off
+legendPlot = ["Beräknad RF"
+              "Data från RCP45"];
+legend(legendPlot,'Location','southeast', 'FontSize', fontSize)
+
+%% Uppgift 9
+
+run('radiativeForcingRCP45.m');
+
+s = 1;
+totalRadForceExclCO2 = totRadForcExclCO2AndAerosols + totRadForcAerosols * s;
+
+fontSize = 15;
+plot(Year, totalRadForceExclCO2)
+titleString = append('Radiative forcing utan CO_2');
+title(titleString, 'FontSize', fontSize)
+xlabel('Year', 'FontSize', fontSize)
+ylabel('W/M^2', 'FontSize', fontSize)
+grid on
+
+%% Uppgift 10
 
 
 
