@@ -1,7 +1,15 @@
-function deltaT = vattenModell(years, RF, lambda, k, C_1, C_2)
+function [deltaT, C_1, C_2] = vattenModell(years, RF, lambda, k)
 
     %Data från uppgiften
     deltaT_0 = [0;0];
+    waterSpecificHeatCapacity = 4186;
+    waterDensity = 1020;
+    BoxOneEffectiveDepth = 50;
+    BoxTwoEffectiveDepth = 2000;
+    seconsInAYear = 60*60*24*365; %31 536 000 sekunder
+    
+    C_1 = (waterSpecificHeatCapacity*BoxOneEffectiveDepth*waterDensity)/seconsInAYear;
+    C_2 = (waterSpecificHeatCapacity*BoxTwoEffectiveDepth*waterDensity)/seconsInAYear;
     
     h = 1; %år
     deltaT = zeros(2,length(years)-1);

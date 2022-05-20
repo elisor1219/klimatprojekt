@@ -1,6 +1,15 @@
-function [newModell, temp] = modellTemp(years, beta, lambda, k, s, C_1, C_2)
-    run('utslappRCP45.m')
+function [newModell, temp, C_1, C_2] = modellTemp(years, beta, lambda, k, s, U, RF_geoEngineering)
     run('radiativeForcingRCP45.m');
+        
+    %Ställer upp utsläppet, om inget annat anges
+    if nargin < 6
+        run('utslappRCP45.m')
+        U = CO2Emissions;
+    end
+    
+    if nargin < 7
+        RF_geoEngineering = zeros(1,length(years));
+    end
 
     
     %Börjar med att ställa upp den modell 1 -%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
@@ -11,13 +20,18 @@ function [newModell, temp] = modellTemp(years, beta, lambda, k, s, C_1, C_2)
               45, 0, 0]; %GtC/år
     alpha = F_noll./B_noll;
     deltaT_0 = [0;0];
+        waterSpecificHeatCapacity = 4186;
+    waterDensity = 1020;
+    BoxOneEffectiveDepth = 50;
+    BoxTwoEffectiveDepth = 2000;
+    seconsInAYear = 60*60*24*365; %31 536 000 sekunder
+    
+    C_1 = (waterSpecificHeatCapacity*BoxOneEffectiveDepth*waterDensity)/seconsInAYear;
+    C_2 = (waterSpecificHeatCapacity*BoxTwoEffectiveDepth*waterDensity)/seconsInAYear;
 
     %Ställer upp NPP, alltså flödet mellan box B1 och box B2
     NPP_noll = F_noll(1,2); %Inte helt säker på denna
     NPP = @(B1) NPP_noll * (1 + beta * log(B1/B_noll(1)));
-
-    %Ställer upp utsläppet
-    U = CO2Emissions;
 
     %Ställer upp flödesförändringen mellan boxaran
     B1_prim = @(t,B1,B2,B3) alpha(3,1)*B3 + alpha(2,1)*B2 - NPP(B1) + U(t);
@@ -53,7 +67,7 @@ function [newModell, temp] = modellTemp(years, beta, lambda, k, s, C_1, C_2)
         B(3,t+h) = B(3,t) + B3_prim(t,B(1,t),B(2,t),B(3,t))*h;
         B(4,t+h) = sum(U(1:t)) + sum(B(:,1)) - sum(B(:,t));
         
-        RF = RF_CO2(B(1,t)*0.469) + totRadForcAerosols(t)*s + totRadForcExclCO2AndAerosols(t);
+        RF = RF_CO2(B(1,t)*0.469) + totRadForcAerosols(t)*s + totRadForcExclCO2AndAerosols(t) - RF_geoEngineering(t);
         
 
         

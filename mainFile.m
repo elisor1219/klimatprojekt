@@ -274,27 +274,18 @@ grid on
 %Räknat på en tolerans på 0.005.
 clc;clear;clf
 
-waterSpecificHeatCapacity = 4186;
-waterDensity = 1020;
-BoxOneEffectiveDepth = 50;
-BoxTwoEffectiveDepth = 2000;
-seconsInAYear = 60*60*24*365; %31 536 000 sekunder
-
-C_1 = (waterSpecificHeatCapacity*BoxOneEffectiveDepth*waterDensity)/seconsInAYear;
-C_2 = (waterSpecificHeatCapacity*BoxTwoEffectiveDepth*waterDensity)/seconsInAYear;
-
 time = 1:10000;
 RF = ones(length(time),1);
 RF(1) = 0; %Enligt uppgiften
-lamda = 0.9; %spann på 0.5-1.3
+lambda = 0.9; %spann på 0.5-1.3
 k = 0.6; %spann på 0.2-1
 
-deltaT = vattenModell(time, RF, lamda, k, C_1, C_2);
+deltaT = vattenModell(time, RF, lambda, k);
 plot(time, deltaT(:,:))
 
 tol = 0.005;
 for i = 2:length(time)
-   if abs(deltaT(1,i) - deltaT(2,i)) <= tol && abs(deltaT(1,i) - RF(i)*lamda) <= tol
+   if abs(deltaT(1,i) - deltaT(2,i)) <= tol && abs(deltaT(1,i) - RF(i)*lambda) <= tol
        disp(['År ', num2str(i), ' är deltaT_1 = deltaT_2 = RF*lamda'])
        break
    end
@@ -323,29 +314,20 @@ clc;clear;clf
 %År 523 når deltaT_2 e-folding time
 %År 2355 är deltaT_1 = deltaT_2 = RF*lamda
 
-waterSpecificHeatCapacity = 4186;
-waterDensity = 1020;
-BoxOneEffectiveDepth = 50;
-BoxTwoEffectiveDepth = 2000;
-seconsInAYear = 60*60*24*365; %31 536 000 sekunder
-
-C_1 = (waterSpecificHeatCapacity*BoxOneEffectiveDepth*waterDensity)/seconsInAYear;
-C_2 = (waterSpecificHeatCapacity*BoxTwoEffectiveDepth*waterDensity)/seconsInAYear;
-
 time = 1:10000;
 RF = ones(length(time),1);
 RF(1) = 0; %Enligt uppgiften
-lamda = 0.9; %spann på 0.5-1.3
+lambda = 0.9; %spann på 0.5-1.3
 k = 0.6; %spann på 0.2-1
 
-deltaT = vattenModell(time, RF, lamda, k, C_1, C_2);
+deltaT = vattenModell(time, RF, lambda, k);
 plot(time, deltaT(:,:))
 
 tol = 0.005;
-e_foldingTime = (1-exp(-1))*(RF(end)*lamda);
+e_foldingTime = (1-exp(-1))*(RF(end)*lambda);
 foldingTimeDone = [false, false];
 for i = 2:length(time)
-   if abs(deltaT(1,i) - deltaT(2,i)) <= tol && abs(deltaT(1,i) - RF(i)*lamda) <= tol
+   if abs(deltaT(1,i) - deltaT(2,i)) <= tol && abs(deltaT(1,i) - RF(i)*lambda) <= tol
        disp(['År ', num2str(i), ' är deltaT_1 = deltaT_2 = RF*lamda'])
        break
    end
@@ -369,28 +351,19 @@ clc;clear;clf
 %Lägre kappa = mindre energi i haven = mer energi i rymden (konservering av energi).
 %Högre kappa = tvärtom från ovan.
 
-waterSpecificHeatCapacity = 4186;
-waterDensity = 1020;
-BoxOneEffectiveDepth = 50;
-BoxTwoEffectiveDepth = 2000;
-seconsInAYear = 60*60*24*365; %31 536 000 sekunder
-
-C_1 = (waterSpecificHeatCapacity*BoxOneEffectiveDepth*waterDensity)/seconsInAYear;
-C_2 = (waterSpecificHeatCapacity*BoxTwoEffectiveDepth*waterDensity)/seconsInAYear;
-
 time = 1:200;
 RF = ones(length(time),1);
 RF(1) = 0; %Enligt uppgiften
-lamda = 0.9; %spann på 0.5-1.3
+lambda = 0.9; %spann på 0.5-1.3
 k = 0.6; %spann på 0.2-1
 
-deltaT = vattenModell(time, RF, lamda, k, C_1, C_2);
+[deltaT, C_1, ~] = vattenModell(time, RF, lambda, k);
 
 tol = 0.005;
-e_foldingTime = (1-exp(-1))*(RF(end)*lamda);
+e_foldingTime = (1-exp(-1))*(RF(end)*lambda);
 foldingTimeDone = [false, false];
 for i = 2:length(time)
-   if abs(deltaT(1,i) - deltaT(2,i)) <= tol && abs(deltaT(1,i) - RF(i)*lamda) <= tol
+   if abs(deltaT(1,i) - deltaT(2,i)) <= tol && abs(deltaT(1,i) - RF(i)*lambda) <= tol
        disp(['År ', num2str(i), ' är deltaT_1 = deltaT_2 = RF*lamda'])
        break
    end
@@ -410,7 +383,7 @@ end
 %Ackumulerad energi (i haven)
 ackumuleradEnergiHaven = [sum(gradient(deltaT(1,:))*C_1,2),sum(k*(deltaT(1,:)-deltaT(2,:)),2)];
 energiIn = sum(RF);
-energiUt = sum(deltaT(1,:)/lamda);
+energiUt = sum(deltaT(1,:)/lambda);
 disp(append('ackumuleradEnergiHaven = ', string(sum(ackumuleradEnergiHaven))))
 disp(append('energiIn - energiUt = ', string(energiIn-energiUt)))
 
@@ -421,9 +394,9 @@ plot(time, gradient(deltaT(1,:))*C_1)
 hold on
 plot(time, k*(deltaT(1,:)-deltaT(2,:)))
 %plot(time, deltaT(2,:)*C_2)
-plot(time, deltaT(1,:)/lamda)
+plot(time, deltaT(1,:)/lambda)
 plot(time, RF)
-titleString = append('Energiflödet vid \lambda = ', string(lamda), ' och \kappa = ', string(k));
+titleString = append('Energiflödet vid \lambda = ', string(lambda), ' och \kappa = ', string(k));
 title(titleString, 'FontSize', fontSize)
 xlabel('Year', 'FontSize', fontSize)
 ylabel('W/M^2', 'FontSize', fontSize)
@@ -453,85 +426,23 @@ clc;clear;clf
 %   Svar på fråga: Avgöra när det är som minst osäkert med vänderna och
 %                  utgå från det.
 
-
-
 run('NASA_GISS.m')
-run('koncentrationerRCP45.m');
-run('radiativeForcingRCP45.m');
 
 Year = 1765:2019;
 referensperiod = 1951:1980;
-%referensperiod = 1766:1786;
 NASAYear = 1880:2019;
-
-waterSpecificHeatCapacity = 4186;
-waterDensity = 1020;
-BoxOneEffectiveDepth = 50;
-BoxTwoEffectiveDepth = 2000;
-seconsInAYear = 60*60*24*365; %31 536 000 sekunder
-
-C_1 = (waterSpecificHeatCapacity*BoxOneEffectiveDepth*waterDensity)/seconsInAYear;
-C_2 = (waterSpecificHeatCapacity*BoxTwoEffectiveDepth*waterDensity)/seconsInAYear;
 
 %Variabler
 beta = 0.35; %spann 0.1-0.8
-lamda = 0.82; %spann på 0.5-1.3
+lambda = 0.82; %spann på 0.5-1.3
 k = 0.89; %spann på 0.2-1
 s = 1.27;   %spann olkart
 
-% temp = 10000;
-% for i = 1:200
-%     lamda = 0.5 + (1.3-0.5) .* rand(1,1);
-%     k = 0.2 + (1-0.2) .* rand(1,1);
-%     s = 0.1 + (2-0.1) .* rand(1,1);
-% 
-%     
-%     [~, temperatur] = modellTemp(Year, beta, lamda, k, s, C_1, C_2);
-%     globalMedeltemperatur = sum(temperatur,1);
-%     globalMedeltemperaturKorigerd = globalMedeltemperatur - mean(globalMedeltemperatur(referensperiod-Year(1)+1));
-%     diffNow = sum(abs(globalMedeltemperaturKorigerd(NASAYear - Year(1)+1) - TAnomali));
-%     
-%     if diffNow < temp
-%         temp = diffNow;
-%         bestLamda = lamda;
-%         bestK = k;
-%         bestS = s;
-%     end
-% end
-% 
-% beta = 0.35; %spann 0.1-0.8
-% lamda = bestLamda; %spann på 0.5-1.3
-% k = bestK; %spann på 0.2-1
-% s = bestS;   %spann olkart
+[~, temperaturCase] = modellTemp(Year, beta, lambda, k, s);
 
 
-
-[newModell, temperatur] = modellTemp(Year, beta, lamda, k, s, C_1, C_2);
-
-%fontSize = 13;
-%
-% figure(2)
-% subplot(2,1,1)
-% plot(Year,newModell')
-% titleString = append('Model with water (\beta = ', string(beta),')');
-% title(titleString, 'FontSize', fontSize)
-% xlabel('Year', 'FontSize', fontSize)
-% ylabel('GtC (Gigaton kol)', 'FontSize', fontSize)
-% legend(["Atmosfär";"Ovan mark";"Under mark";"Hav"],'Location','west', 'FontSize', fontSize)
-% grid on
-% 
-% subplot(2,1,2)
-% plot(Year,temp' - mean(temp(referensperiod-Year(1))))
-% titleString = append('Model with water (\lambda = ', string(lamda), ' och \kappa = ', string(k),')');
-% title(titleString, 'FontSize', fontSize)
-% xlabel('Year', 'FontSize', fontSize)
-% ylabel('Temperaturförändring', 'FontSize', fontSize)
-% legend(["Ythavet";"Djuphavet"],'Location','northwest', 'FontSize', fontSize)
-% grid on
-
-
-globalMedeltemperatur = sum(temperatur,1);
-globalMedeltemperaturKorigerd = globalMedeltemperatur - mean(globalMedeltemperatur(referensperiod-Year(1)+1));
+globalMedeltemperaturCase = sum(temperaturCase,1);
+globalMedeltemperaturKorigerd = globalMedeltemperaturCase - mean(globalMedeltemperaturCase(referensperiod-Year(1)+1));
 
 
 diff = sum(abs(globalMedeltemperaturKorigerd(NASAYear - Year(1)+1) - TAnomali));
@@ -540,13 +451,13 @@ disp(append('Skillnad mellan NASA och vår modell = ', string(diff)))
 
 fontSize = 15;
 
-%figure(1)
 plot(Year, globalMedeltemperaturKorigerd)
 hold on
 %NASA
 plot(NASAYear,TAnomali)
-titleString = append('Model with water (\beta = ', string(beta),', \lambda = ', string(lamda), ', \kappa = ', string(k),', s = ',string(s),')');
-title(titleString, 'FontSize', fontSize)
+titleString = append('Medeltemperaturökning baserat på medelvärdet över ', string(referensperiod(1)), ' - ', string(referensperiod(end)));
+subtiTitle = append('(\beta = ', string(beta),', \lambda = ', string(lambda), ', \kappa = ', string(k),', s = ',string(s),')');
+title([titleString, subtiTitle], 'FontSize', fontSize)
 xlabel('Year', 'FontSize', fontSize)
 ylabel('Medeltemperaturökning', 'FontSize', fontSize)
 legend(["Beräknad medeltemperatur";"NASA medeltemperatur"],'Location','northwest', 'FontSize', fontSize)
@@ -554,10 +465,200 @@ hold off
 axis([Year(1) Year(end) -2 2])
 grid on
 
+%% Uppgift 12 ab
+clc;clf;clear
+
+run('utslappRCP45.m')
+
+Year = 1765:2100;
+referensperiod = 1765:1765;
+
+globalMedeltemperaturKorigerd = zeros(3,length(Year));
+
+beta = 0.35; %spann 0.1-0.8
+lambda = 0.8; %spann på 0.5-1.3
+k = 0.89; %spann på 0.2-1
+s = 1.27;   %spann olkart
+
+%Case 1 -%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
+
+[~, temperaturCase] = case1(Year, beta, lambda, k, s);
+
+
+globalMedeltemperaturCase = sum(temperaturCase,1);
+globalMedeltemperaturKorigerd(1,:) = globalMedeltemperaturCase - mean(globalMedeltemperaturCase(referensperiod-Year(1)+1));
+
+%Case 2 -%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
+
+[~, temperaturCase2] = case2(Year, beta, lambda, k, s);
+
+
+globalMedeltemperaturCase2 = sum(temperaturCase2,1);
+globalMedeltemperaturKorigerd(2,:) = globalMedeltemperaturCase2 - mean(globalMedeltemperaturCase2(referensperiod-Year(1)+1));
+
+%Case 3 -%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
+
+[~, temperaturCase3] = case3(Year, beta, lambda, k, s);
+
+
+globalMedeltemperaturCase3 = sum(temperaturCase3,1);
+globalMedeltemperaturKorigerd(3,:) = globalMedeltemperaturCase3 - mean(globalMedeltemperaturCase3(referensperiod-Year(1)+1));
+
+
+
+fontSize = 15;
+
+plot(Year, globalMedeltemperaturKorigerd)
+hold on
+titleString = append('Medeltemperaturökning baserat på medelvärdet över ', string(referensperiod(1)), ' - ', string(referensperiod(end)));
+subtiTitle = append('(\beta = ', string(beta),', \lambda = ', string(lambda), ', \kappa = ', string(k),', s = ',string(s),')');
+title([titleString, subtiTitle], 'FontSize', fontSize)
+xlabel('Year', 'FontSize', fontSize)
+ylabel('Temperatur', 'FontSize', fontSize)
+legendPlot = ["Alternativ i"
+              "Alternativ ii"
+              "Alternativ iii"];
+legend(legendPlot,'Location','northwest', 'FontSize', fontSize)
+hold off
+axis([Year(1) Year(end) -2 5])
+grid on
+
+%% Uppgift 12 c
+clc;clf;clear
+
+run('utslappRCP45.m')
+
+Year = 1765:2100;
+referensperiod = 1765:1765;
+
+globalMedeltemperaturKorigerd = zeros(6,length(Year));
+
+beta = 0.35; %spann 0.1-0.8
+%lambda = 0.5; %spann på 0.5-1.3
+k = 0.89; %spann på 0.2-1
+s = 1.27;   %spann olkart
+
+%Case 1 -%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
+
+lambda = 0.5;
+[~, temperaturCase] = case1(Year, beta, lambda, k, s);
+
+globalMedeltemperaturCase = sum(temperaturCase,1);
+globalMedeltemperaturKorigerd(1,:) = globalMedeltemperaturCase - mean(globalMedeltemperaturCase(referensperiod-Year(1)+1));
+
+lambda = 1.3;
+[~, temperaturCase] = case1(Year, beta, lambda, k, s);
+
+globalMedeltemperaturCase = sum(temperaturCase,1);
+globalMedeltemperaturKorigerd(4,:) = globalMedeltemperaturCase - mean(globalMedeltemperaturCase(referensperiod-Year(1)+1));
+
+%Case 2 -%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
+
+lambda = 0.5;
+[~, temperaturCase] = case2(Year, beta, lambda, k, s);
+
+globalMedeltemperaturCase = sum(temperaturCase,1);
+globalMedeltemperaturKorigerd(2,:) = globalMedeltemperaturCase - mean(globalMedeltemperaturCase(referensperiod-Year(1)+1));
+
+lambda = 1.3;
+[~, temperaturCase] = case2(Year, beta, lambda, k, s);
+
+globalMedeltemperaturCase = sum(temperaturCase,1);
+globalMedeltemperaturKorigerd(5,:) = globalMedeltemperaturCase - mean(globalMedeltemperaturCase(referensperiod-Year(1)+1));
+
+%Case 3 -%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
+
+lambda = 0.5;
+[~, temperaturCase] = case3(Year, beta, lambda, k, s);
+
+globalMedeltemperaturCase = sum(temperaturCase,1);
+globalMedeltemperaturKorigerd(3,:) = globalMedeltemperaturCase - mean(globalMedeltemperaturCase(referensperiod-Year(1)+1));
+
+lambda = 1.3;
+[~, temperaturCase] = case3(Year, beta, lambda, k, s);
+
+globalMedeltemperaturCase = sum(temperaturCase,1);
+globalMedeltemperaturKorigerd(6,:) = globalMedeltemperaturCase - mean(globalMedeltemperaturCase(referensperiod-Year(1)+1));
 
 
 
 
+fontSize = 15;
 
+%plot(Year, globalMedeltemperaturKorigerd(1:3,:))
+hold on
+%patch([Year,flip(Year)],[globalMedeltemperaturKorigerd(2,:),flip(globalMedeltemperaturKorigerd(5,:))], 'r', 'FaceAlpha', 0.3)
+plot(Year,globalMedeltemperaturKorigerd(1:3,:))
+plot(Year,globalMedeltemperaturKorigerd(4,:), '--', 'color', '[0, 0.4470, 0.7410]')
+plot(Year,globalMedeltemperaturKorigerd(5,:), '--', 'color', '[0.8500, 0.3250, 0.0980]')
+plot(Year,globalMedeltemperaturKorigerd(6,:), '--', 'color', '[0.9290, 0.6940, 0.1250]')
+titleString = append('Medeltemperaturökning baserat på medelvärdet över ', string(referensperiod(1)), ' - ', string(referensperiod(end)));
+subtiTitle = append('(\beta = ', string(beta),', \lambda = 0.5 - 1.3 \kappa = ', string(k),', s = ',string(s),')');
+title([titleString, subtiTitle], 'FontSize', fontSize)
+xlabel('Year', 'FontSize', fontSize)
+ylabel('Temperatur', 'FontSize', fontSize)
+legendPlot = ["Alternativ i   low"
+              "Alternativ ii  low"
+              "Alternativ iii low"
+              "Alternativ i   high"
+              "Alternativ ii  high"
+              "Alternativ iii high"];
+legend(legendPlot,'Location','northwest', 'FontSize', fontSize)
+hold off
+axis([Year(1) Year(end) -2 5])
+grid on
+
+%% Uppgift 12d se text
+%% Uppgift 13a 
+
+clc;clf;clear
+
+run('utslappRCP45.m')
+
+Year = 1765:2200;
+referensperiod = 1765:1765;
+
+beta = 0.35; %spann 0.1-0.8
+lambda = 1.3; %spann på 0.5-1.3
+k = 0.89; %spann på 0.2-1
+s = 1.27;   %spann olkart
+
+RF_geoEngineering = zeros(1,length(Year));
+%Sätter 2050 - 2100 att vi minskar med 4 W/m^2
+RF_geoEngineering(286:336) = 4;
+
+[deltaT, temperaturCase, C_1] = case3(Year, beta, lambda, k, s, RF_geoEngineering);
+
+globalMedeltemperaturCase = sum(temperaturCase,1);
+globalMedeltemperaturKorigerd(1,:) = globalMedeltemperaturCase - mean(globalMedeltemperaturCase(referensperiod-Year(1)+1));
+
+[~, temperaturCase] = case3(Year, beta, lambda, k, s);
+
+globalMedeltemperaturCase = sum(temperaturCase,1);
+globalMedeltemperaturKorigerd(2,:) = globalMedeltemperaturCase - mean(globalMedeltemperaturCase(referensperiod-Year(1)+1));
+
+
+
+
+fontSize = 15;
+
+hold on
+fill([2050, 2100, 2100, 2050],[-10, -10, 20, 20],'g','FaceAlpha', 0.25, 'LineStyle','none')
+plot(Year,globalMedeltemperaturKorigerd(2,:), 'color' ,'[0.6350, 0.0780, 0.1840]')
+plot(Year,globalMedeltemperaturKorigerd(1,:), 'color' ,'[0.9290, 0.6940, 0.1250]')
+titleString = append('Medeltemperaturökning baserat på medelvärdet över ', string(referensperiod(1)), ' - ', string(referensperiod(end)));
+subtiTitle = append('(\beta = ', string(beta),', \lambda = ', string(lambda), ', \kappa = ', string(k),', s = ',string(s),')');
+title([titleString, subtiTitle], 'FontSize', fontSize)
+xlabel('Year', 'FontSize', fontSize)
+ylabel('Temperatur', 'FontSize', fontSize)
+legendPlot = ["Ökar aerosoler i atmosfären"
+              "Alternativ iii utan ingrepp"
+              "Alternativ iii med extra aerosoler"];
+legend(legendPlot,'Location','northwest', 'FontSize', fontSize)
+hold off
+axis([Year(1) Year(end) -2 10])
+grid on
+
+%% Uppgift 13b se text
 
 
