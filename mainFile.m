@@ -471,7 +471,7 @@ clc;clf;clear
 run('utslappRCP45.m')
 
 Year = 1765:2100;
-referensperiod = 1765:1765;
+referensperiod = 1765:1865;
 
 globalMedeltemperaturKorigerd = zeros(3,length(Year));
 
@@ -529,7 +529,7 @@ clc;clf;clear
 run('utslappRCP45.m')
 
 Year = 1765:2100;
-referensperiod = 1765:1765;
+referensperiod = 1765:1865;
 
 globalMedeltemperaturKorigerd = zeros(6,length(Year));
 
@@ -616,7 +616,7 @@ clc;clf;clear
 run('utslappRCP45.m')
 
 Year = 1765:2200;
-referensperiod = 1765:1765;
+referensperiod = 1765:1865;
 
 beta = 0.35; %spann 0.1-0.8
 lambda = 1.3; %spann på 0.5-1.3
