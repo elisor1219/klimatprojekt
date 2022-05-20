@@ -155,7 +155,7 @@ legendPlot = ["CO_2 conc our modell"
               "CO_2 conc RCP45"];
 legend(legendPlot,'Location','northwest', 'FontSize', fontSize)
 
-%% Uppgift 5 TODO: Saknas en pil mellan B1 och B3
+%% Uppgift 5
 clf
 
 fullFileName = '../figures/boxmodell.png';
@@ -235,7 +235,7 @@ run('radiativeForcingRCP45.m');
 
 
 Year = 1765:2500;
-RF = RF_CO2(Year, CO2ConcRCP45*0.469);
+RF = RF_CO2(CO2ConcRCP45);
 
 fontSize = 15;
 plot(Year, RF)
@@ -247,16 +247,19 @@ grid on
 hold on
 plot(Year,CO2RadForc)
 hold off
-legendPlot = ["Beräknad RF"
+legendPlot = ["Beräknad RF-C0_2"
               "Data från RCP45"];
 legend(legendPlot,'Location','southeast', 'FontSize', fontSize)
 
 %% Uppgift 9
+clc;clear;clf
 
 run('radiativeForcingRCP45.m');
 
 s = 1;
 totalRadForceExclCO2 = totRadForcExclCO2AndAerosols + totRadForcAerosols * s;
+
+Year = 1765:2500;
 
 fontSize = 15;
 plot(Year, totalRadForceExclCO2)
@@ -266,7 +269,295 @@ xlabel('Year', 'FontSize', fontSize)
 ylabel('W/M^2', 'FontSize', fontSize)
 grid on
 
-%% Uppgift 10
+%% Uppgift 10a
+%Svar på fråga: Runt år 3321 så är deltaT_1 = deltaT_2 = RF*lamda.
+%Räknat på en tolerans på 0.005.
+clc;clear;clf
+
+waterSpecificHeatCapacity = 4186;
+waterDensity = 1020;
+BoxOneEffectiveDepth = 50;
+BoxTwoEffectiveDepth = 2000;
+seconsInAYear = 60*60*24*365; %31 536 000 sekunder
+
+C_1 = (waterSpecificHeatCapacity*BoxOneEffectiveDepth*waterDensity)/seconsInAYear;
+C_2 = (waterSpecificHeatCapacity*BoxTwoEffectiveDepth*waterDensity)/seconsInAYear;
+
+time = 1:10000;
+RF = ones(length(time),1);
+RF(1) = 0; %Enligt uppgiften
+lamda = 0.9; %spann på 0.5-1.3
+k = 0.6; %spann på 0.2-1
+
+deltaT = vattenModell(time, RF, lamda, k, C_1, C_2);
+plot(time, deltaT(:,:))
+
+tol = 0.005;
+for i = 2:length(time)
+   if abs(deltaT(1,i) - deltaT(2,i)) <= tol && abs(deltaT(1,i) - RF(i)*lamda) <= tol
+       disp(['År ', num2str(i), ' är deltaT_1 = deltaT_2 = RF*lamda'])
+       break
+   end
+    
+end 
+
+%% Uppgift 10b
+clc;clear;clf
+%-%-%-Lamda = 0.5 & k = 0.6-%-%-%
+%År 6 når deltaT_1 e-folding time
+%År 592 når deltaT_2 e-folding time
+%År 4024 är deltaT_1 = deltaT_2 = RF*lamda
+
+%-%-%-Lamda = 1.3 & k = 0.6-%-%-%
+%År 154 når deltaT_1 e-folding time
+%År 814 når deltaT_2 e-folding time
+%År 2553 är deltaT_1 = deltaT_2 = RF*lamda
+
+%-%-%-Lamda = 0.9 & k = 0.2-%-%-%
+%År 9 når deltaT_1 e-folding time
+%År 1606 når deltaT_2 e-folding time
+%År 8041 är deltaT_1 = deltaT_2 = RF*lamda
+
+%-%-%-Lamda = 0.9 & k = 0.1-%-%-%
+%År 140 når deltaT_1 e-folding time
+%År 523 når deltaT_2 e-folding time
+%År 2355 är deltaT_1 = deltaT_2 = RF*lamda
+
+waterSpecificHeatCapacity = 4186;
+waterDensity = 1020;
+BoxOneEffectiveDepth = 50;
+BoxTwoEffectiveDepth = 2000;
+seconsInAYear = 60*60*24*365; %31 536 000 sekunder
+
+C_1 = (waterSpecificHeatCapacity*BoxOneEffectiveDepth*waterDensity)/seconsInAYear;
+C_2 = (waterSpecificHeatCapacity*BoxTwoEffectiveDepth*waterDensity)/seconsInAYear;
+
+time = 1:10000;
+RF = ones(length(time),1);
+RF(1) = 0; %Enligt uppgiften
+lamda = 0.9; %spann på 0.5-1.3
+k = 0.6; %spann på 0.2-1
+
+deltaT = vattenModell(time, RF, lamda, k, C_1, C_2);
+plot(time, deltaT(:,:))
+
+tol = 0.005;
+e_foldingTime = (1-exp(-1))*(RF(end)*lamda);
+foldingTimeDone = [false, false];
+for i = 2:length(time)
+   if abs(deltaT(1,i) - deltaT(2,i)) <= tol && abs(deltaT(1,i) - RF(i)*lamda) <= tol
+       disp(['År ', num2str(i), ' är deltaT_1 = deltaT_2 = RF*lamda'])
+       break
+   end
+   
+   if deltaT(1,i) >= e_foldingTime && ~foldingTimeDone(1)
+       foldingTimeDone(1) = true;
+       disp(['År ', num2str(i), ' når deltaT_1 e-folding time'])
+   end
+   
+   if deltaT(2,i) >= e_foldingTime && ~foldingTimeDone(2)
+       foldingTimeDone(2) = true;
+       disp(['År ', num2str(i), ' når deltaT_2 e-folding time'])
+   end
+end 
+
+%% Uppgift 10c
+clc;clear;clf
+%Svar på fråga: Japp, lagen om konservering av energi gäller.
+%Lägre lamda = mer enrgi ut i rymnden och mindre energi i systemet.
+%Högre lamda = tvärtom från ovan.
+%Lägre kappa = mindre energi i haven = mer energi i rymden (konservering av energi).
+%Högre kappa = tvärtom från ovan.
+
+waterSpecificHeatCapacity = 4186;
+waterDensity = 1020;
+BoxOneEffectiveDepth = 50;
+BoxTwoEffectiveDepth = 2000;
+seconsInAYear = 60*60*24*365; %31 536 000 sekunder
+
+C_1 = (waterSpecificHeatCapacity*BoxOneEffectiveDepth*waterDensity)/seconsInAYear;
+C_2 = (waterSpecificHeatCapacity*BoxTwoEffectiveDepth*waterDensity)/seconsInAYear;
+
+time = 1:200;
+RF = ones(length(time),1);
+RF(1) = 0; %Enligt uppgiften
+lamda = 0.9; %spann på 0.5-1.3
+k = 0.6; %spann på 0.2-1
+
+deltaT = vattenModell(time, RF, lamda, k, C_1, C_2);
+
+tol = 0.005;
+e_foldingTime = (1-exp(-1))*(RF(end)*lamda);
+foldingTimeDone = [false, false];
+for i = 2:length(time)
+   if abs(deltaT(1,i) - deltaT(2,i)) <= tol && abs(deltaT(1,i) - RF(i)*lamda) <= tol
+       disp(['År ', num2str(i), ' är deltaT_1 = deltaT_2 = RF*lamda'])
+       break
+   end
+   
+   if deltaT(1,i) >= e_foldingTime && ~foldingTimeDone(1)
+       foldingTimeDone(1) = true;
+       disp(['År ', num2str(i), ' når deltaT_1 e-folding time'])
+   end
+   
+   if deltaT(2,i) >= e_foldingTime && ~foldingTimeDone(2)
+       foldingTimeDone(2) = true;
+       disp(['År ', num2str(i), ' når deltaT_2 e-folding time'])
+   end
+end 
+
+%Är det energibevarande?
+%Ackumulerad energi (i haven)
+ackumuleradEnergiHaven = [sum(gradient(deltaT(1,:))*C_1,2),sum(k*(deltaT(1,:)-deltaT(2,:)),2)];
+energiIn = sum(RF);
+energiUt = sum(deltaT(1,:)/lamda);
+disp(append('ackumuleradEnergiHaven = ', string(sum(ackumuleradEnergiHaven))))
+disp(append('energiIn - energiUt = ', string(energiIn-energiUt)))
+
+
+fontSize = 13;
+
+plot(time, gradient(deltaT(1,:))*C_1)
+hold on
+plot(time, k*(deltaT(1,:)-deltaT(2,:)))
+%plot(time, deltaT(2,:)*C_2)
+plot(time, deltaT(1,:)/lamda)
+plot(time, RF)
+titleString = append('Energiflödet vid \lambda = ', string(lamda), ' och \kappa = ', string(k));
+title(titleString, 'FontSize', fontSize)
+xlabel('Year', 'FontSize', fontSize)
+ylabel('W/M^2', 'FontSize', fontSize)
+grid on
+axis([0 200 0 1.05 ])
+legendPlot = ["Ytbox energiupptag"
+              "Djupbox energiupptag"
+              "Energi ut i rymden"
+              "Radiative forcing"];
+legend(legendPlot,'Location','east', 'FontSize', fontSize)
+hold off
+
+
+%% Uppgift 11 abc
+clc;clear;clf
+%a) Svar på fråga: Referencperioden påverkar svaret med att förflytta
+%                  modellen längre upp eller ner.
+%   Svar på fråga: Referensperiod mellan 1766-1786 är bra för att se
+%                  medeltemperaturökning för förindustriell tid.
+%b) Svar på fråga: När lamda är stor ökar temeraturen snabbare, tvärtom
+%                  annars.
+%   Svar på fråga: När k är stor är det mindre fluktueringar mellan största
+%                  och minsta temperaturskillnad, tvärtom annars.
+%   Svar på fårga: lambda = 0.7, k = 0.8, s = 0.9
+%                  lambda = 1.2, k = 1, s = 1.5
+%                  lambda = 0.82, k = 0.89, s = 1.27
+%   Svar på fråga: Avgöra när det är som minst osäkert med vänderna och
+%                  utgå från det.
+
+
+
+run('NASA_GISS.m')
+run('koncentrationerRCP45.m');
+run('radiativeForcingRCP45.m');
+
+Year = 1765:2019;
+referensperiod = 1951:1980;
+%referensperiod = 1766:1786;
+NASAYear = 1880:2019;
+
+waterSpecificHeatCapacity = 4186;
+waterDensity = 1020;
+BoxOneEffectiveDepth = 50;
+BoxTwoEffectiveDepth = 2000;
+seconsInAYear = 60*60*24*365; %31 536 000 sekunder
+
+C_1 = (waterSpecificHeatCapacity*BoxOneEffectiveDepth*waterDensity)/seconsInAYear;
+C_2 = (waterSpecificHeatCapacity*BoxTwoEffectiveDepth*waterDensity)/seconsInAYear;
+
+%Variabler
+beta = 0.35; %spann 0.1-0.8
+lamda = 0.82; %spann på 0.5-1.3
+k = 0.89; %spann på 0.2-1
+s = 1.27;   %spann olkart
+
+% temp = 10000;
+% for i = 1:200
+%     lamda = 0.5 + (1.3-0.5) .* rand(1,1);
+%     k = 0.2 + (1-0.2) .* rand(1,1);
+%     s = 0.1 + (2-0.1) .* rand(1,1);
+% 
+%     
+%     [~, temperatur] = modellTemp(Year, beta, lamda, k, s, C_1, C_2);
+%     globalMedeltemperatur = sum(temperatur,1);
+%     globalMedeltemperaturKorigerd = globalMedeltemperatur - mean(globalMedeltemperatur(referensperiod-Year(1)+1));
+%     diffNow = sum(abs(globalMedeltemperaturKorigerd(NASAYear - Year(1)+1) - TAnomali));
+%     
+%     if diffNow < temp
+%         temp = diffNow;
+%         bestLamda = lamda;
+%         bestK = k;
+%         bestS = s;
+%     end
+% end
+% 
+% beta = 0.35; %spann 0.1-0.8
+% lamda = bestLamda; %spann på 0.5-1.3
+% k = bestK; %spann på 0.2-1
+% s = bestS;   %spann olkart
+
+
+
+[newModell, temperatur] = modellTemp(Year, beta, lamda, k, s, C_1, C_2);
+
+%fontSize = 13;
+%
+% figure(2)
+% subplot(2,1,1)
+% plot(Year,newModell')
+% titleString = append('Model with water (\beta = ', string(beta),')');
+% title(titleString, 'FontSize', fontSize)
+% xlabel('Year', 'FontSize', fontSize)
+% ylabel('GtC (Gigaton kol)', 'FontSize', fontSize)
+% legend(["Atmosfär";"Ovan mark";"Under mark";"Hav"],'Location','west', 'FontSize', fontSize)
+% grid on
+% 
+% subplot(2,1,2)
+% plot(Year,temp' - mean(temp(referensperiod-Year(1))))
+% titleString = append('Model with water (\lambda = ', string(lamda), ' och \kappa = ', string(k),')');
+% title(titleString, 'FontSize', fontSize)
+% xlabel('Year', 'FontSize', fontSize)
+% ylabel('Temperaturförändring', 'FontSize', fontSize)
+% legend(["Ythavet";"Djuphavet"],'Location','northwest', 'FontSize', fontSize)
+% grid on
+
+
+globalMedeltemperatur = sum(temperatur,1);
+globalMedeltemperaturKorigerd = globalMedeltemperatur - mean(globalMedeltemperatur(referensperiod-Year(1)+1));
+
+
+diff = sum(abs(globalMedeltemperaturKorigerd(NASAYear - Year(1)+1) - TAnomali));
+disp(append('Skillnad mellan NASA och vår modell = ', string(diff)))
+
+
+fontSize = 15;
+
+%figure(1)
+plot(Year, globalMedeltemperaturKorigerd)
+hold on
+%NASA
+plot(NASAYear,TAnomali)
+titleString = append('Model with water (\beta = ', string(beta),', \lambda = ', string(lamda), ', \kappa = ', string(k),', s = ',string(s),')');
+title(titleString, 'FontSize', fontSize)
+xlabel('Year', 'FontSize', fontSize)
+ylabel('Medeltemperaturökning', 'FontSize', fontSize)
+legend(["Beräknad medeltemperatur";"NASA medeltemperatur"],'Location','northwest', 'FontSize', fontSize)
+hold off
+axis([Year(1) Year(end) -2 2])
+grid on
+
+
+
+
+
 
 
 
